@@ -2,7 +2,7 @@
 version: '3'
 
 services:
-  flask:
+  hkab_trak:
     build:
       context: ./apps/hkab_trak
       dockerfile: ./Dockerfile
