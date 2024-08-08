@@ -4,8 +4,8 @@ version: '3'
 services:
   flask:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./apps/hkab_trak
+      dockerfile: ./Dockerfile
     container_name: hkab_trak
     expose:
       - "1473"
