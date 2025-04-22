@@ -1,36 +1,44 @@
-# project/docker-compose.yml
-version: '3'
+version: '3.8'
 
 services:
-  hkab_trak:
-    build:
-      context: ./apps/hkab_trak
-      dockerfile: ./Dockerfile
-    container_name: hkab_trak
-    expose:
-      - "1473"
-    environment:
-      - FLASK_ENV=production
-
-  nginx:
-    build:
-      context: .
-      dockerfile: Dockerfile.nginx
-    container_name: nginx_proxy
+  traefik:
+    image: traefik:v3.0
+    command:
+      - "--configFile=/etc/traefik/traefik.yml"
     ports:
       - "80:80"
       - "443:443"
-    depends_on:
-      - hkab_trak
     volumes:
-      - ./certs:/etc/letsencrypt
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./certbot:/var/www/certbot
+      - "./traefik/traefik.yml:/etc/traefik/traefik.yml"
+      - "./traefik/acme.json:/letsencrypt/acme.json"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - web
 
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./certs:/etc/letsencrypt
-      - ./certbot:/var/www/certbot
-    entrypoint: /bin/sh -c 'trap exit TERM; while :; do sleep 6h & wait $${!}; certbot renew; done;'
+  hkabtrak:
+    build: ./hkabtrak
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.absent.rule=Host(`absent.calgaryhoshuko.org`)"
+      - "traefik.http.routers.absent.entrypoints=web,websecure"
+      - "traefik.http.routers.absent.tls.certresolver=letsencrypt"
+      - "traefik.http.services.absent.loadbalancer.server.port=8000"
+    networks:
+      - web
+      -
+  kanjitest:
+    build: ./kanji-test-maker
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kanjitest.rule=Host(`kanjisoft.calgaryhoshuko.org`)"
+      - "traefik.http.routers.kanjitest.entrypoints=web,websecure"
+      - "traefik.http.routers.kanjitest.tls.certresolver=letsencrypt"
+      - "traefik.http.services.kanjitest.loadbalancer.server.port=8000"
+    networks:
+      - web
+
+networks:
+  web:
+    external: false
