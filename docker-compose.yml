@@ -26,7 +26,7 @@ services:
       - "traefik.http.services.absent.loadbalancer.server.port=8000"
     networks:
       - web
-      -
+
   kanjitest:
     build: ./kanji-test-maker
     restart: unless-stopped
