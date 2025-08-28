@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   traefik:
     image: traefik:v3.0
@@ -7,6 +5,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "1473:1473"   # keep old bookmark for absent
+      - "9473:9473"   # keep old bookmark for kanjitest
     volumes:
       - "./traefik/traefik.yml:/etc/traefik/traefik.yml:ro"
       - "./traefik/acme.json:/letsencrypt/acme.json"
@@ -17,20 +17,16 @@ services:
   hkabtrak:
     build: ./apps/hkab_trak
     restart: unless-stopped
-    # Use your existing env file in $HOME
     env_file:
       - ${HOME}/hkab_trak.env
-    # Bind mounts you used before
     volumes:
       - ./apps/hkab_trak/migrations:/app/migrations
       - ./apps/hkab_trak/instance:/app/instance
-      # If you still need certbot state (you probably don't with Traefik):
-      - letsencrypt:/etc/letsencrypt
-      - letsencrypt-lib:/var/lib/letsencrypt
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.absent.rule=Host(`absent.calgaryhoshuko.org`)"
-      - "traefik.http.routers.absent.entrypoints=web,websecure"
+      # Serve on 443 and 1473 (TLS both)
+      - "traefik.http.routers.absent.entrypoints=websecure,legacy_absent"
       - "traefik.http.routers.absent.tls.certresolver=letsencrypt"
       - "traefik.http.services.absent.loadbalancer.server.port=8000"
     networks: [web]
@@ -46,14 +42,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.kanjitest.rule=Host(`kanjisoft.calgaryhoshuko.org`)"
-      - "traefik.http.routers.kanjitest.entrypoints=web,websecure"
+      # Serve on 443 and 9473 (TLS both)
+      - "traefik.http.routers.kanjitest.entrypoints=websecure,legacy_kanjitest"
       - "traefik.http.routers.kanjitest.tls.certresolver=letsencrypt"
       - "traefik.http.services.kanjitest.loadbalancer.server.port=8000"
     networks: [web]
 
 networks:
   web:
-
-volumes:
-  letsencrypt:
-  letsencrypt-lib:

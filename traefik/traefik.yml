@@ -3,6 +3,10 @@ entryPoints:
     address: ":80"
   websecure:
     address: ":443"
+  legacy_absent:
+    address: ":1473"
+  legacy_kanjitest:
+    address: ":9473"
 
 providers:
   docker:
