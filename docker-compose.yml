@@ -18,7 +18,7 @@ services:
     build: ./apps/hkab_trak
     restart: unless-stopped
     env_file:
-      - ${HOME}/hkab_trak.env
+      - ./hkab_trak.env
     volumes:
       - ./apps/hkab_trak/migrations:/app/migrations
       - ./apps/hkab_trak/instance:/app/instance
@@ -35,7 +35,7 @@ services:
     build: ./apps/kanji-test-maker
     restart: unless-stopped
     env_file:
-      - ${HOME}/kanji_test.env
+      - ./kanji_test.env
     volumes:
       - ./apps/kanji-test-maker/migrations:/app/migrations
       - ./apps/kanji-test-maker/instance:/app/instance
